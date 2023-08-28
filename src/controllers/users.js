@@ -7,14 +7,12 @@ export const getAllUsers = catchAsync(async (req, res) => {
   const users = await User.find();
   res.status(200).json({ message: "", users: users });
 });
-
 function generateUniqueFilename() {
   const timestamp = new Date().getTime();
   const random = Math.floor(Math.random() * 10000);
 
   return `user_image_${timestamp}_${random}`;
 }
-
 export const signUp = catchAsync(async (req, res) => {
   const { firstName, lastName, phoneNumber, email, username, password } =
     req.body;
@@ -59,19 +57,18 @@ export const signUp = catchAsync(async (req, res) => {
     });
 
     await newUser.save();
+
+    console.log("Image uploaded and user data saved:", newUser);
+    return res.status(201).json({ user: newUser });
   } catch (error) {
     console.log(error);
-  
+
     if (profilePicturePath) {
       fs.unlinkSync(filePath); 
     }
     return res.status(500).json({ message: "Error uploading image" });
   }
-
-  console.log(newUser);
-  return res.status(201).json({ user: newUser });
 });
-
 
 export const loginUser = catchAsync(async (req, res) => {
   const { identifier, password } = req.body;
@@ -92,7 +89,6 @@ export const loginUser = catchAsync(async (req, res) => {
 
   res.status(200).json({ message: "Login successful", user: user });
 });
-
 export const updateUser = catchAsync(async (req, res) => {
   const { id } = req.params;
   const { updatedUser } = req.body;
