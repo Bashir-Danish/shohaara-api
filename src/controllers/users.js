@@ -3,12 +3,10 @@ import { catchAsync } from "../middlewares.js";
 import path from "path";
 import bcrypt from "bcrypt";
 
-
 export const getAllUsers = catchAsync(async (req, res) => {
   const users = await User.find();
   res.status(200).json({ message: "", users: users });
 });
-
 
 function generateUniqueFilename() {
   const timestamp = new Date().getTime();
@@ -18,12 +16,28 @@ function generateUniqueFilename() {
 }
 
 export const signUp = catchAsync(async (req, res) => {
-  const { firstName, lastName, phoneNumber, email, username, password } = req.body;
+  const { firstName, lastName, phoneNumber, email, username, password } =
+    req.body;
 
-  const existingUser = await User.findOne({ $or: [{ email: email }, { username: username }] });
+  const existingUser = await User.findOne({
+    $or: [{ email: email }, { username: username }],
+  });
   if (existingUser) {
-    return res.status(400).json({ message: "Email or username already exists" });
+    return res
+      .status(400)
+      .json({ message: "Email or username already exists" });
   }
+
+  // Create the user without the profilePicture for now
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const newUser = await User.create({
+    firstName: firstName,
+    lastName: lastName,
+    phoneNumber: phoneNumber,
+    email: email,
+    username: username,
+    password: hashedPassword,
+  });
 
   let profilePicturePath;
   try {
@@ -33,7 +47,7 @@ export const signUp = catchAsync(async (req, res) => {
 
     const file = req.files.file;
     const uniqueFilename = generateUniqueFilename();
-    const ext = file.name.split(".").filter(Boolean).slice(1)
+    const ext = file.name.split(".").filter(Boolean).slice(1).join(".");
     const filePath = path.resolve(
       path.dirname("") + `/src/uploads/users/${uniqueFilename}.${ext}`
     );
@@ -41,25 +55,21 @@ export const signUp = catchAsync(async (req, res) => {
     await file.mv(filePath);
 
     profilePicturePath = `/uploads/users/${uniqueFilename}.${ext}`;
+
+    // Update the newUser with the profilePicture path
+    newUser.profilePicture = profilePicturePath;
+    await newUser.save();
   } catch (error) {
     console.log(error);
+    // Rollback the user creation if there's an error uploading the image
+    await newUser.remove();
+    return res.status(500).json({ message: "Error uploading image" });
   }
 
-  const hashedPassword = await bcrypt.hash(password, 10); 
-  const newUser = await User.create({
-    firstName: firstName,
-    lastName: lastName,
-    phoneNumber: phoneNumber,
-    email: email,
-    username: username,
-    password: hashedPassword,
-    profilePicture: profilePicturePath,
-  });
   console.log(newUser);
 
   return res.status(201).json({ user: newUser });
 });
-
 
 export const loginUser = catchAsync(async (req, res) => {
   const { identifier, password } = req.body;
@@ -80,11 +90,6 @@ export const loginUser = catchAsync(async (req, res) => {
 
   res.status(200).json({ message: "Login successful", user: user });
 });
-
-
-
-
-
 
 export const updateUser = catchAsync(async (req, res) => {
   const { id } = req.params;
