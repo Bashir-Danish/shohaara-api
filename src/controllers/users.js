@@ -26,27 +26,26 @@ export const signUp = catchAsync(async (req, res) => {
       .json({ message: "Email or username already exists" });
   }
 
-  let profilePicturePath;
-  let newUser;
+  // let profilePicturePath;
 
   try {
-    if (!req.files || Object.keys(req.files).length === 0) {
-      return res.status(400).json({ error: "No file uploaded" });
-    }
+    // if (!req.files || Object.keys(req.files).length === 0) {
+    //   return res.status(400).json({ error: "No file uploaded" });
+    // }
 
-    const file = req.files.file;
-    const uniqueFilename = generateUniqueFilename();
-    const ext = file.name.split(".").filter(Boolean).slice(1).join(".");
-    const filePath = path.resolve(
-      path.dirname("") + `/src/uploads/users/${uniqueFilename}.${ext}`
-    );
+    // const file = req.files.file;
+    // const uniqueFilename = generateUniqueFilename();
+    // const ext = file.name.split(".").filter(Boolean).slice(1).join(".");
+    // const filePath = path.resolve(
+    //   path.dirname("") + `/src/uploads/users/${uniqueFilename}.${ext}`
+    // );
 
-    await file.mv(filePath);
+    // await file.mv(filePath);
 
-    profilePicturePath = `/uploads/users/${uniqueFilename}.${ext}`;
+    // profilePicturePath = `/uploads/users/${uniqueFilename}.${ext}`;
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    newUser = new User({
+    let newUser = new User({
       firstName: firstName,
       lastName: lastName,
       phoneNumber: phoneNumber,
@@ -57,15 +56,9 @@ export const signUp = catchAsync(async (req, res) => {
     });
 
     await newUser.save();
-
-    console.log("Image uploaded and user data saved:", newUser);
     return res.status(201).json({ user: newUser });
   } catch (error) {
     console.log(error);
-
-    if (profilePicturePath) {
-      fs.unlinkSync(filePath); 
-    }
     return res.status(500).json({ message: "Error uploading image" });
   }
 });
