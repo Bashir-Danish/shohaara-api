@@ -47,7 +47,6 @@ export const signUp = catchAsync(async (req, res) => {
 
     profilePicturePath = `/uploads/users/${uniqueFilename}.${ext}`;
 
-    // Create the user with the profilePicture path
     const hashedPassword = await bcrypt.hash(password, 10);
     newUser = new User({
       firstName: firstName,
