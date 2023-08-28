@@ -61,9 +61,9 @@ export const signUp = catchAsync(async (req, res) => {
     await newUser.save();
   } catch (error) {
     console.log(error);
-    // If there's an error, delete the uploaded file if it was uploaded
+  
     if (profilePicturePath) {
-      fs.unlinkSync(filePath); // Delete the uploaded file
+      fs.unlinkSync(filePath); 
     }
     return res.status(500).json({ message: "Error uploading image" });
   }
