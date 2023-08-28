@@ -28,18 +28,9 @@ export const signUp = catchAsync(async (req, res) => {
       .json({ message: "Email or username already exists" });
   }
 
-  // Create the user without the profilePicture for now
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const newUser = await User.create({
-    firstName: firstName,
-    lastName: lastName,
-    phoneNumber: phoneNumber,
-    email: email,
-    username: username,
-    password: hashedPassword,
-  });
-
   let profilePicturePath;
+  let newUser;
+
   try {
     if (!req.files || Object.keys(req.files).length === 0) {
       return res.status(400).json({ error: "No file uploaded" });
@@ -56,20 +47,32 @@ export const signUp = catchAsync(async (req, res) => {
 
     profilePicturePath = `/uploads/users/${uniqueFilename}.${ext}`;
 
-    // Update the newUser with the profilePicture path
-    newUser.profilePicture = profilePicturePath;
+    // Create the user with the profilePicture path
+    const hashedPassword = await bcrypt.hash(password, 10);
+    newUser = new User({
+      firstName: firstName,
+      lastName: lastName,
+      phoneNumber: phoneNumber,
+      email: email,
+      username: username,
+      password: hashedPassword,
+      profilePicture: profilePicturePath,
+    });
+
     await newUser.save();
   } catch (error) {
     console.log(error);
-    // Rollback the user creation if there's an error uploading the image
-    await newUser.remove();
+    // If there's an error, delete the uploaded file if it was uploaded
+    if (profilePicturePath) {
+      fs.unlinkSync(filePath); // Delete the uploaded file
+    }
     return res.status(500).json({ message: "Error uploading image" });
   }
 
   console.log(newUser);
-
   return res.status(201).json({ user: newUser });
 });
+
 
 export const loginUser = catchAsync(async (req, res) => {
   const { identifier, password } = req.body;
