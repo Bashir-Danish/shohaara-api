@@ -34,19 +34,18 @@ export const signUp = catchAsync(async (req, res) => {
 
     const file = req.files.file;
     const uniqueFilename = generateUniqueFilename();
-    const ext = file.name.split(".").filter(Boolean).slice(1).join(".");
+    const ext = file.name.split(".").filter(Boolean).slice(1).join("."); // Join the extension parts
     const filePath = path.resolve(
-      path.dirname("") + `/src/uploads/users/${uniqueFilename}.${ext}`
+      path.join(__dirname, `../uploads/users/${uniqueFilename}.${ext}`) // Use path.join and __dirname to construct the file path
     );
 
     await file.mv(filePath);
 
     profilePicturePath = `/uploads/users/${uniqueFilename}.${ext}`;
   } catch (error) {
-    console.log(error);
+    console.log("File Upload Error:", error);
     return res.status(500).json({ message: "Error uploading file" });
   }
-
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
