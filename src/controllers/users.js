@@ -3,10 +3,12 @@ import { catchAsync } from "../middlewares.js";
 import path from "path";
 import bcrypt from "bcrypt";
 
+
 export const getAllUsers = catchAsync(async (req, res) => {
   const users = await User.find();
   res.status(200).json({ message: "", users: users });
 });
+
 
 function generateUniqueFilename() {
   const timestamp = new Date().getTime();
@@ -14,16 +16,13 @@ function generateUniqueFilename() {
 
   return `user_image_${timestamp}_${random}`;
 }
+
 export const signUp = catchAsync(async (req, res) => {
-  const { firstName, lastName, phoneNumber, email, username, password } =
-    req.body;
-  const existingUser = await User.findOne({
-    $or: [{ email: email }, { username: username }],
-  });
+  const { firstName, lastName, phoneNumber, email, username, password } = req.body;
+
+  const existingUser = await User.findOne({ $or: [{ email: email }, { username: username }] });
   if (existingUser) {
-    return res
-      .status(400)
-      .json({ message: "Email or username already exists" });
+    return res.status(400).json({ message: "Email or username already exists" });
   }
 
   let profilePicturePath;
@@ -34,35 +33,33 @@ export const signUp = catchAsync(async (req, res) => {
 
     const file = req.files.file;
     const uniqueFilename = generateUniqueFilename();
-    const ext = file.name.split(".").filter(Boolean).slice(1).join("."); // Join the extension parts
+    const ext = file.name.split(".").filter(Boolean).slice(1)
     const filePath = path.resolve(
-      path.join(__dirname, `../uploads/users/${uniqueFilename}.${ext}`) // Use path.join and __dirname to construct the file path
+      path.dirname("") + `/src/uploads/users/${uniqueFilename}.${ext}`
     );
 
     await file.mv(filePath);
 
     profilePicturePath = `/uploads/users/${uniqueFilename}.${ext}`;
   } catch (error) {
-    console.log("File Upload Error:", error);
-    return res.status(500).json({ message: "Error uploading file" });
-  }
-  try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await User.create({
-      firstName: firstName,
-      lastName: lastName,
-      phoneNumber: phoneNumber,
-      email: email,
-      username: username,
-      password: hashedPassword,
-      profilePicture: profilePicturePath,
-    });
-    return res.status(201).json({ user: newUser });
-  } catch (error) {
     console.log(error);
-    return res.status(500).json({ message: "Error creating user" });
   }
+
+  const hashedPassword = await bcrypt.hash(password, 10); 
+  const newUser = await User.create({
+    firstName: firstName,
+    lastName: lastName,
+    phoneNumber: phoneNumber,
+    email: email,
+    username: username,
+    password: hashedPassword,
+    profilePicture: profilePicturePath,
+  });
+  console.log(newUser);
+
+  return res.status(201).json({ user: newUser });
 });
+
 
 export const loginUser = catchAsync(async (req, res) => {
   const { identifier, password } = req.body;
@@ -83,6 +80,11 @@ export const loginUser = catchAsync(async (req, res) => {
 
   res.status(200).json({ message: "Login successful", user: user });
 });
+
+
+
+
+
 
 export const updateUser = catchAsync(async (req, res) => {
   const { id } = req.params;
