@@ -19,7 +19,6 @@ function generateUniqueFilename() {
 
 export const signUp = catchAsync(async (req, res) => {
   const { firstName, lastName, phoneNumber, email, username, password } = req.body;
-
   const existingUser = await User.findOne({ $or: [{ email: email }, { username: username }] });
   if (existingUser) {
     return res.status(400).json({ message: "Email or username already exists" });
@@ -41,23 +40,20 @@ export const signUp = catchAsync(async (req, res) => {
     await file.mv(filePath);
 
     profilePicturePath = `/uploads/users/${uniqueFilename}.${ext}`;
+    const hashedPassword = await bcrypt.hash(password, 10); 
+    const newUser = await User.create({
+      firstName: firstName,
+      lastName: lastName,
+      phoneNumber: phoneNumber,
+      email: email,
+      username: username,
+      password: hashedPassword,
+      profilePicture: profilePicturePath,
+    });
+    return res.status(201).json({ user: newUser });
   } catch (error) {
     console.log(error);
   }
-
-  const hashedPassword = await bcrypt.hash(password, 10); 
-  const newUser = await User.create({
-    firstName: firstName,
-    lastName: lastName,
-    phoneNumber: phoneNumber,
-    email: email,
-    username: username,
-    password: hashedPassword,
-    profilePicture: profilePicturePath,
-  });
-  console.log(newUser);
-
-  return res.status(201).json({ user: newUser });
 });
 
 
