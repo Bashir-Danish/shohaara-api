@@ -3,12 +3,10 @@ import { catchAsync } from "../middlewares.js";
 import path from "path";
 import bcrypt from "bcrypt";
 
-
 export const getAllUsers = catchAsync(async (req, res) => {
   const users = await User.find();
   res.status(200).json({ message: "", users: users });
 });
-
 
 function generateUniqueFilename() {
   const timestamp = new Date().getTime();
@@ -16,12 +14,16 @@ function generateUniqueFilename() {
 
   return `user_image_${timestamp}_${random}`;
 }
-
 export const signUp = catchAsync(async (req, res) => {
-  const { firstName, lastName, phoneNumber, email, username, password } = req.body;
-  const existingUser = await User.findOne({ $or: [{ email: email }, { username: username }] });
+  const { firstName, lastName, phoneNumber, email, username, password } =
+    req.body;
+  const existingUser = await User.findOne({
+    $or: [{ email: email }, { username: username }],
+  });
   if (existingUser) {
-    return res.status(400).json({ message: "Email or username already exists" });
+    return res
+      .status(400)
+      .json({ message: "Email or username already exists" });
   }
 
   let profilePicturePath;
@@ -32,7 +34,7 @@ export const signUp = catchAsync(async (req, res) => {
 
     const file = req.files.file;
     const uniqueFilename = generateUniqueFilename();
-    const ext = file.name.split(".").filter(Boolean).slice(1)
+    const ext = file.name.split(".").filter(Boolean).slice(1).join(".");
     const filePath = path.resolve(
       path.dirname("") + `/src/uploads/users/${uniqueFilename}.${ext}`
     );
@@ -40,7 +42,13 @@ export const signUp = catchAsync(async (req, res) => {
     await file.mv(filePath);
 
     profilePicturePath = `/uploads/users/${uniqueFilename}.${ext}`;
-    const hashedPassword = await bcrypt.hash(password, 10); 
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Error uploading file" });
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
       firstName: firstName,
       lastName: lastName,
@@ -53,9 +61,9 @@ export const signUp = catchAsync(async (req, res) => {
     return res.status(201).json({ user: newUser });
   } catch (error) {
     console.log(error);
+    return res.status(500).json({ message: "Error creating user" });
   }
 });
-
 
 export const loginUser = catchAsync(async (req, res) => {
   const { identifier, password } = req.body;
@@ -76,11 +84,6 @@ export const loginUser = catchAsync(async (req, res) => {
 
   res.status(200).json({ message: "Login successful", user: user });
 });
-
-
-
-
-
 
 export const updateUser = catchAsync(async (req, res) => {
   const { id } = req.params;
