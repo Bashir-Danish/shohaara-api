@@ -1,29 +1,54 @@
-const express = require('express');
-const morgan = require('morgan');
-const helmet = require('helmet');
-const cors = require('cors');
+import express from "express";
+import morgan from "morgan";
+import helmet from "helmet";
+import cors from "cors";
+import bodyParser from "body-parser";
+import { config } from "dotenv";
+import { notFound, errorHandler } from "./middlewares.js";
+import fileUpload from "express-fileupload";
+import fs from "fs";
+import path from "path";
 
-require('dotenv').config();
+import userRouter from "./routes/users.js";
+import postRouter from "./routes/posts.js"
+import poetRouter from "./routes/poet.js";
+import commentRouter from "./routes/comments.js";
 
-const middlewares = require('./middlewares');
-const api = require('./api');
+import connectDatabase from "./configs/dbConfig.js";
+
+
+config();
 
 const app = express();
+connectDatabase();
 
-app.use(morgan('dev'));
+app.use(morgan("dev"));
 app.use(helmet());
-app.use(cors());
+app.use(cors("*"));
+app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(fileUpload());
 
-app.get('/', (req, res) => {
+app.use(
+  "/uploads",
+  express.static(path.join(path.dirname(""), "./src/uploads/"))
+);
+app.use('/api/v1/users', userRouter);
+app.use('/api/v1/posts', postRouter);
+app.use('/api/v1/poets',poetRouter);
+app.use('/api/v1/comments',commentRouter);
+
+app.get('/seed',async (req, res) => {
   res.json({
     message: '🦄🌈✨👋🌎🌍🌏✨🌈🦄',
   });
 });
 
-app.use('/api/v1', api);
+app.use(notFound);
+app.use(errorHandler);
 
-app.use(middlewares.notFound);
-app.use(middlewares.errorHandler);
 
-module.exports = app;
+export default app;
