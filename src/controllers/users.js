@@ -26,24 +26,7 @@ export const signUp = catchAsync(async (req, res) => {
       .json({ message: "Email or username already exists" });
   }
 
-  // let profilePicturePath;
-
   try {
-    // if (!req.files || Object.keys(req.files).length === 0) {
-    //   return res.status(400).json({ error: "No file uploaded" });
-    // }
-
-    // const file = req.files.file;
-    // const uniqueFilename = generateUniqueFilename();
-    // const ext = file.name.split(".").filter(Boolean).slice(1).join(".");
-    // const filePath = path.resolve(
-    //   path.dirname("") + `/src/uploads/users/${uniqueFilename}.${ext}`
-    // );
-
-    // await file.mv(filePath);
-
-    // profilePicturePath = `/uploads/users/${uniqueFilename}.${ext}`;
-
     const hashedPassword = await bcrypt.hash(password, 10);
     let newUser = new User({
       firstName: firstName,
@@ -52,14 +35,14 @@ export const signUp = catchAsync(async (req, res) => {
       email: email,
       username: username,
       password: hashedPassword,
-      profilePicture: profilePicturePath,
+      profilePicture: '/uploads/person.jpg',
     });
 
     await newUser.save();
     return res.status(201).json({ user: newUser });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ message: "Error uploading image" });
+    return res.status(500).json({ message: "Error image "+error });
   }
 });
 
