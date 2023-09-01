@@ -1,5 +1,6 @@
 import User from "../models/user.js";
 import { catchAsync } from "../middlewares.js";
+import  Jwt  from "jsonwebtoken";
 import path from "path";
 import bcrypt from "bcrypt";
 
@@ -13,6 +14,7 @@ function generateUniqueFilename() {
 
   return `user_image_${timestamp}_${random}`;
 }
+
 export const signUp = catchAsync(async (req, res) => {
   const { firstName, lastName, phoneNumber, email, username, password } =
     req.body;
@@ -20,6 +22,7 @@ export const signUp = catchAsync(async (req, res) => {
   const existingUser = await User.findOne({
     $or: [{ email: email }, { username: username }],
   });
+
   if (existingUser) {
     return res
       .status(400)
@@ -27,24 +30,30 @@ export const signUp = catchAsync(async (req, res) => {
   }
 
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
     let newUser = new User({
       firstName: firstName,
       lastName: lastName,
       phoneNumber: phoneNumber,
       email: email,
       username: username,
-      password: hashedPassword,
-      profilePicture: '/uploads/person.jpg',
+      profilePicture: "/uploads/person.jpg", 
     });
 
     await newUser.save();
-    return res.status(201).json({ user: newUser });
+
+    delete newUser.password;
+
+    const token = Jwt.sign({ id: newUser._id }, process.env.SECRET, {
+      expiresIn: "7d",
+    });
+
+    return res.status(201).json({ user: newUser, token });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ message: "Error image "+error });
+    return res.status(500).json({ message: "Error: " + error });
   }
 });
+
 
 export const loginUser = catchAsync(async (req, res) => {
   const { identifier, password } = req.body;
