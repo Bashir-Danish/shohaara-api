@@ -1,6 +1,6 @@
 import User from "../models/user.js";
 import { catchAsync } from "../middlewares.js";
-import  Jwt  from "jsonwebtoken";
+import Jwt from "jsonwebtoken";
 import path from "path";
 import bcrypt from "bcrypt";
 
@@ -18,7 +18,6 @@ function generateUniqueFilename() {
 export const signUp = catchAsync(async (req, res) => {
   const { firstName, lastName, phoneNumber, email, username, password } =
     req.body;
-
   const existingUser = await User.findOne({
     $or: [{ email: email }, { username: username }],
   });
@@ -36,13 +35,15 @@ export const signUp = catchAsync(async (req, res) => {
       phoneNumber: phoneNumber,
       email: email,
       username: username,
-      profilePicture: "/uploads/person.jpg", 
+      password: password,
+      profilePicture: "/uploads/person.jpg",
     });
 
     await newUser.save();
 
     delete newUser.password;
 
+    console.log(newUser);
     const token = Jwt.sign({ id: newUser._id }, process.env.SECRET, {
       expiresIn: "7d",
     });
@@ -54,26 +55,35 @@ export const signUp = catchAsync(async (req, res) => {
   }
 });
 
+export const loginUser = catchAsync( async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-export const loginUser = catchAsync(async (req, res) => {
-  const { identifier, password } = req.body;
+    const user = await User.findOne({
+      $or: [{ email: email }, { username: email }],
+    });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-  const user = await User.findOne({
-    $or: [{ email: identifier }, { username: identifier }],
-  });
+    const isPasswordValid = bcrypt.compare(password, user.password);
 
-  if (!user) {
-    return res.status(404).json({ message: "User not found" });
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Invalid password" });
+    }
+
+    const token = Jwt.sign({ id: user._id }, process.env.SECRET, {
+      expiresIn: "7d",
+    });
+
+    return res.status(200).json({ message: "Login successful", user, token });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Error: " + error.message });
   }
-
-  const isPasswordValid = bcrypt.compare(password, user.password);
-
-  if (!isPasswordValid) {
-    return res.status(401).json({ message: "Invalid password" });
-  }
-
-  res.status(200).json({ message: "Login successful", user: user });
 });
+
+
 export const updateUser = catchAsync(async (req, res) => {
   const { id } = req.params;
   const { updatedUser } = req.body;
@@ -94,6 +104,7 @@ export const updateUser = catchAsync(async (req, res) => {
     res.status(500).json({ message: "Invalid User Info", error: err.message });
   }
 });
+
 export const deleteUser = catchAsync(async (req, res) => {
   const { id } = req.params;
 
