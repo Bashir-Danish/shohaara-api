@@ -112,7 +112,7 @@ export const updateUser = catchAsync(async (req, res) => {
 
     res.status(200).json({ message: "User updated", user: user });
   } catch (err) {
-    res.status(500).json({ message: "Invalid User Info", error: err.message });
+    res.status(500).json({ message: "Invalid User Info", error: req.body });
   }
 });
 
