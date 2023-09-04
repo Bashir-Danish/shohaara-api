@@ -85,7 +85,6 @@ export const loginUser = catchAsync(async (req, res) => {
 
 export const updateUser = catchAsync(async (req, res) => {
   const { id } = req.params;
-  const { username , phoneNumber ,email ,name ,lastName} = req.body;
   
 
   try {
@@ -108,7 +107,7 @@ export const updateUser = catchAsync(async (req, res) => {
     user.username = req.body.username;
     user.email = req.body.email;
     user.phoneNumber = req.body.phoneNumber;
-    user.name = req.body.name ?? user.name;
+    user.firstName = req.body.firstName ?? user.firstName;
     user.lastName = req.body.lastName ?? user.lastName;
     await user.save();
 
