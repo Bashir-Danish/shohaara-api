@@ -88,32 +88,34 @@ export const updateUser = catchAsync(async (req, res) => {
   const { username , phoneNumber ,email} = req.body;
   
 
-  try {
-    const user = await User.findById(id);
-    if (!user) {
-      return res.status(404).json({ message: "User doesn't exist" });
-    }
-    const existingUsername = await User.findOne({
-      username: req.body.username,
-    });
-    if (existingUsername && existingUsername._id.toString() !== id) {
-      return res.status(400).json({ message: "Username already exists" });
-    }
+  // try {
+  //   const user = await User.findById(id);
+  //   if (!user) {
+  //     return res.status(404).json({ message: "User doesn't exist" });
+  //   }
+  //   const existingUsername = await User.findOne({
+  //     username: req.body.username,
+  //   });
+  //   if (existingUsername && existingUsername._id.toString() !== id) {
+  //     return res.status(400).json({ message: "Username already exists" });
+  //   }
 
-    const existingEmail = await User.findOne({ email: req.body.email });
-    if (existingEmail && existingEmail._id.toString() !== id) {
-      return res.status(400).json({ message: "Email already exists" });
-    }
+  //   const existingEmail = await User.findOne({ email: req.body.email });
+  //   if (existingEmail && existingEmail._id.toString() !== id) {
+  //     return res.status(400).json({ message: "Email already exists" });
+  //   }
 
-    user.username = req.body.username;
-    user.email = req.body.email;
-    user.phoneNumber = req.body.phoneNumber;
-    await user.save();
+  //   user.username = req.body.username;
+  //   user.email = req.body.email;
+  //   user.phoneNumber = req.body.phoneNumber;
+  //   await user.save();
 
-    res.status(200).json({ message: "User updated", user: user });
-  } catch (err) {
-    res.status(500).json({ message: "Invalid User Info", error: req.body });
-  }
+  //   res.status(200).json({ message: "User updated", user: user });
+  // } catch (err) {
+  //   res.status(500).json({ message: "Invalid User Info", error: req.body });
+  // }
+    res.status(200).json({ message: req.body });
+
 });
 
 export const deleteUser = catchAsync(async (req, res) => {
