@@ -85,29 +85,28 @@ export const loginUser = catchAsync(async (req, res) => {
 
 export const updateUser = catchAsync(async (req, res) => {
   const { id } = req.params;
-  const { updatedUser } = req.body;
+  const { username , phoneNumber ,email} = req.body;
 
   try {
     const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({ message: "User doesn't exist" });
     }
-
     const existingUsername = await User.findOne({
-      username: updatedUser.username,
+      username: username,
     });
     if (existingUsername && existingUsername._id.toString() !== id) {
       return res.status(400).json({ message: "Username already exists" });
     }
 
-    const existingEmail = await User.findOne({ email: updatedUser.email });
+    const existingEmail = await User.findOne({ email: email });
     if (existingEmail && existingEmail._id.toString() !== id) {
       return res.status(400).json({ message: "Email already exists" });
     }
 
-    user.username = updatedUser.username;
-    user.email = updatedUser.email;
-    user.phoneNumber = updatedUser.phoneNumber;
+    user.username = username;
+    user.email = email;
+    user.phoneNumber = phoneNumber;
     await user.save();
 
     res.status(200).json({ message: "User updated", user: user });

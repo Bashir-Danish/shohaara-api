@@ -8,6 +8,7 @@ export const isAuthenticatedUser = catchAsync(async (req, res, next) => {
     req.headers["authorization"] ||
     req.headers["x-token"] ||
     req.query.token;
+    
   if (!token) {
     res.status(401).send({ message: "Please Login to access this resource" });
   }
