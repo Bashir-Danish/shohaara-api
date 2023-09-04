@@ -85,7 +85,7 @@ export const loginUser = catchAsync(async (req, res) => {
 
 export const updateUser = catchAsync(async (req, res) => {
   const { id } = req.params;
-  const { username , phoneNumber ,email} = req.body;
+  const { username , phoneNumber ,email ,name ,lastName} = req.body;
   
 
   try {
@@ -108,11 +108,13 @@ export const updateUser = catchAsync(async (req, res) => {
     user.username = req.body.username;
     user.email = req.body.email;
     user.phoneNumber = req.body.phoneNumber;
+    user.name = req.body.name ?? user.name;
+    user.lastName = req.body.lastName ?? user.lastName;
     await user.save();
 
     res.status(200).json({ message: "User updated", user: user });
   } catch (err) {
-    res.status(500).json({ message: "Invalid User Info", error: req.body });
+    res.status(500).json({ message: "Invalid User Info", error: err.message });
   }
 });
 
