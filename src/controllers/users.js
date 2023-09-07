@@ -58,10 +58,12 @@ export const signUp = catchAsync(async (req, res) => {
 export const loginUser = catchAsync(async (req, res) => {
   try {
     const { email, password } = req.body;
-
+    console.log(req.body);
     const user = await User.findOne({
       $or: [{ email: email }, { username: email }],
     });
+    console.log(user);
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

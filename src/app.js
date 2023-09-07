@@ -8,6 +8,7 @@ import { notFound, errorHandler } from "./middlewares.js";
 import fileUpload from "express-fileupload";
 import fs from "fs";
 import path from "path";
+import User from "./models/user.js";
 
 import userRouter from "./routes/users.js";
 import postRouter from "./routes/posts.js"
@@ -50,6 +51,77 @@ app.get('/',async (req, res) => {
   res.json({
     message: '🦄🌈✨👋🌎🌍🌏✨🌈🦄',
   });
+});
+function generateUniqueFilename() {
+  const timestamp = new Date().getTime();
+  const random = Math.floor(Math.random() * 100);
+
+  return `image_${timestamp}_${random}`;
+}
+app.put('/api/v1/:id/upload', async (req, res) => {
+  const { id } = req.params; 
+  const { fileType } = req.body;
+
+  if (!req.files || !fileType) {
+    return res.status(400).json({ error: "Please provide a file and fileType (user or post)" });
+  }
+
+  const file = req.files.file;
+  const uniqueFilename = generateUniqueFilename();
+  const ext = file.name.split(".").filter(Boolean).slice(1).join(".");
+
+  let folder = '';
+  let imagePath;
+
+  if (fileType === 'user') {
+    folder = 'users';
+
+    try {
+      const user = await User.findById(id);
+
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      if (user.profilePicture) {
+        const oldImagePath = user.profilePicture.replace('/uploads/', '');
+        const oldFilePath = path.resolve(
+          path.dirname("") + `/src/uploads/${oldImagePath}`
+        );
+
+        fs.unlinkSync(oldFilePath); 
+      }
+
+      imagePath = `/uploads/${folder}/${uniqueFilename}.${ext}`;
+      user.profilePicture = imagePath;
+      await user.save();
+
+      const filePath = path.resolve(
+        path.dirname("") + `/src/uploads/${folder}/${uniqueFilename}` + "." + ext
+      );
+      file.mv(filePath, (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.status(200).json(user);
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  } else if (fileType === 'post') {
+    folder = 'posts';
+    imagePath = `/uploads/${folder}/${uniqueFilename}.${ext}`;
+    const filePath = path.resolve(
+      path.dirname("") + `/src/uploads/${folder}/${uniqueFilename}` + "." + ext
+    );
+
+    file.mv(filePath, (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      imagePath = `/uploads/${folder}/${uniqueFilename}.${ext}`;
+      res.status(200).json({ message: "File uploaded successfully", imagePath });
+    });
+  } else {
+    return res.status(400).json({ error: "Invalid 'fileType' value" });
+  }
 });
 
 app.use(notFound);
