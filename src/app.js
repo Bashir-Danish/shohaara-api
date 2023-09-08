@@ -85,37 +85,54 @@ app.put('/api/v1/:id/upload', async (req, res) => {
 
       if (user.profilePicture) {
         const oldImagePath = user.profilePicture.replace('/uploads/', '');
-        const oldFilePath = path.resolve(
-          path.dirname("") + `/src/uploads/${oldImagePath}`
-        );
+        const oldFilePath = path.join(__dirname, "src", "uploads", oldImagePath);
 
-        fs.unlinkSync(oldFilePath); 
+        fs.access(oldFilePath, fs.constants.F_OK, async (err) => {
+          if (!err) {
+            await fs.promises.unlink(oldFilePath);
+          }
+
+          imagePath = `/uploads/${folder}/${uniqueFilename}.${ext}`;
+          user.profilePicture = imagePath;
+          await user.save();
+
+          const filePath = path.join(__dirname, "src", "uploads", folder, `${uniqueFilename}.${ext}`);
+
+          file.mv(filePath, (err) => {
+            if (err) {
+              return res.status(500).json({ error: err.message });
+            }
+            res.status(200).json(user);
+          });
+        });
+      } else {
+        imagePath = `/uploads/${folder}/${uniqueFilename}.${ext}`;
+        user.profilePicture = imagePath;
+        await user.save();
+
+        const filePath = path.join(__dirname, "src", "uploads", folder, `${uniqueFilename}.${ext}`);
+
+        // Upload the new image
+        file.mv(filePath, (err) => {
+          if (err) {
+            return res.status(500).json({ error: err.message });
+          }
+          res.status(200).json(user);
+        });
       }
-
-      imagePath = `/uploads/${folder}/${uniqueFilename}.${ext}`;
-      user.profilePicture = imagePath;
-      await user.save();
-
-      const filePath = path.resolve(
-        path.dirname("") + `/src/uploads/${folder}/${uniqueFilename}` + "." + ext
-      );
-      file.mv(filePath, (err) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.status(200).json(user);
-      });
     } catch (error) {
       res.status(500).json({ error: error });
     }
   } else if (fileType === 'post') {
     folder = 'posts';
     imagePath = `/uploads/${folder}/${uniqueFilename}.${ext}`;
-    const filePath = path.resolve(
-      path.dirname("") + `/src/uploads/${folder}/${uniqueFilename}` + "." + ext
-    );
+    const filePath = path.join(__dirname, "src", "uploads", folder, `${uniqueFilename}.${ext}`);
 
+    // Upload the new image
     file.mv(filePath, (err) => {
-      if (err) return res.status(500).json({ error: err.message });
-
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
       imagePath = `/uploads/${folder}/${uniqueFilename}.${ext}`;
       res.status(200).json({ message: "File uploaded successfully", imagePath });
     });
@@ -123,6 +140,7 @@ app.put('/api/v1/:id/upload', async (req, res) => {
     return res.status(400).json({ error: "Invalid 'fileType' value" });
   }
 });
+
 
 app.use(notFound);
 app.use(errorHandler);
