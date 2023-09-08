@@ -58,6 +58,8 @@ function generateUniqueFilename() {
 
   return `image_${timestamp}_${random}`;
 }
+
+
 app.put('/api/v1/:id/upload', async (req, res) => {
   const { id } = req.params; 
   const { fileType } = req.body;
@@ -137,7 +139,6 @@ app.put('/api/v1/:id/upload', async (req, res) => {
     return res.status(400).json({ error: "Invalid 'fileType' value" });
   }
 });
-
 
 app.use(notFound);
 app.use(errorHandler);
