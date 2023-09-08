@@ -36,7 +36,7 @@ export const signUp = catchAsync(async (req, res) => {
       email: email,
       username: username,
       password: password,
-      profilePicture: "/uploads/person.jpg",
+      profilePicture: "",
     });
 
     await newUser.save();
