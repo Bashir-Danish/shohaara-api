@@ -111,8 +111,6 @@ app.put('/api/v1/:id/upload', async (req, res) => {
         await user.save();
 
         const filePath = path.join(__dirname, "src", "uploads", folder, `${uniqueFilename}.${ext}`);
-
-        // Upload the new image
         file.mv(filePath, (err) => {
           if (err) {
             return res.status(500).json({ error: err.message });
@@ -128,7 +126,6 @@ app.put('/api/v1/:id/upload', async (req, res) => {
     imagePath = `/uploads/${folder}/${uniqueFilename}.${ext}`;
     const filePath = path.join(__dirname, "src", "uploads", folder, `${uniqueFilename}.${ext}`);
 
-    // Upload the new image
     file.mv(filePath, (err) => {
       if (err) {
         return res.status(500).json({ error: err.message });
