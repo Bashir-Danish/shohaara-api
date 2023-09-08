@@ -59,7 +59,6 @@ function generateUniqueFilename() {
   return `image_${timestamp}_${random}`;
 }
 
-
 app.put('/api/v1/:id/upload', async (req, res) => {
   const { id } = req.params; 
   const { fileType } = req.body;
@@ -102,7 +101,7 @@ app.put('/api/v1/:id/upload', async (req, res) => {
 
           file.mv(filePath, (err) => {
             if (err) {
-              return res.status(500).json({ error: err.message });
+              return res.status(500).json({ error: err });
             }
             res.status(200).json(user);
           });
@@ -115,7 +114,7 @@ app.put('/api/v1/:id/upload', async (req, res) => {
         const filePath = path.join(__dirname, "src", "uploads", folder, `${uniqueFilename}.${ext}`);
         file.mv(filePath, (err) => {
           if (err) {
-            return res.status(500).json({ error: err.message });
+            return res.status(500).json({ error: err });
           }
           res.status(200).json(user);
         });
@@ -130,7 +129,7 @@ app.put('/api/v1/:id/upload', async (req, res) => {
 
     file.mv(filePath, (err) => {
       if (err) {
-        return res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: err });
       }
       imagePath = `/uploads/${folder}/${uniqueFilename}.${ext}`;
       res.status(200).json({ message: "File uploaded successfully", imagePath });
@@ -139,7 +138,6 @@ app.put('/api/v1/:id/upload', async (req, res) => {
     return res.status(400).json({ error: "Invalid 'fileType' value" });
   }
 });
-
 app.use(notFound);
 app.use(errorHandler);
 
