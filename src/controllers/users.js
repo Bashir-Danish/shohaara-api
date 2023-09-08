@@ -134,3 +134,38 @@ export const deleteUser = catchAsync(async (req, res) => {
     res.status(500).json({ message: "Invalid Operation" });
   }
 });
+
+
+export const uploadImage = catchAsync(async (req, res) => {
+
+    const { id } = req.params; 
+    const {imagePath} = req.body
+  
+
+        const user = await User.findById(id);
+  
+        if (!user) {
+          return res.status(404).json({ error: "User not found" });
+        }
+  
+        // if (user.profilePicture) {
+        //   const oldImagePath = user.profilePicture.replace('/uploads/', '');
+        //   const oldFilePath = path.resolve(
+        //     path.dirname("") + `/src/uploads/${oldImagePath}`
+        //   );
+        
+        //   if (fs.existsSync(oldFilePath)) {
+        //     try {
+        //       fs.unlinkSync(oldFilePath);
+        //     } catch (error) {
+        //       console.error(`Error deleting file: ${error}`);
+        //     }
+        //   }
+        // }
+        
+        user.profilePicture = imagePath;
+        await user.save();
+  
+        res.json({user})
+  
+});
