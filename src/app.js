@@ -104,7 +104,7 @@ app.put('/api/v1/:id/upload', async (req, res) => {
         res.status(200).json(user);
       });
     } catch (error) {
-      res.status(500).json({ error: "Internal server error" });
+      res.status(500).json({ error: error });
     }
   } else if (fileType === 'post') {
     folder = 'posts';
