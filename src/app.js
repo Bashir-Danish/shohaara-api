@@ -88,10 +88,16 @@ app.put('/api/v1/:id/upload', async (req, res) => {
         const oldFilePath = path.resolve(
           path.dirname("") + `/src/uploads/${oldImagePath}`
         );
-
-        fs.unlinkSync(oldFilePath); 
+      
+        if (fs.existsSync(oldFilePath)) {
+          try {
+            fs.unlinkSync(oldFilePath);
+          } catch (error) {
+            console.error(`Error deleting file: ${error}`);
+          }
+        }
       }
-
+      
       imagePath = `/uploads/${folder}/${uniqueFilename}.${ext}`;
       user.profilePicture = imagePath;
       await user.save();
