@@ -8,7 +8,7 @@ const postSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-      }
+      },
     ],
     userID: {
       type: mongoose.Schema.Types.ObjectId,
