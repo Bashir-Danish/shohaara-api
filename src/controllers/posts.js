@@ -13,6 +13,7 @@ export const getAllPosts = catchAsync(async (req, res) => {
   console.log(posts);
   res.status(200).json({ message: "", posts: posts });
 });
+
 export const createPost = catchAsync(async (req, res) => {
   const { text, imagePath, userId } = req.body;
 
@@ -22,21 +23,19 @@ export const createPost = catchAsync(async (req, res) => {
       photo: imagePath ?? "",
       userID: userId,
     });
-
-    
-    const populatedPost = await newPost
+    const user = await Post.findOne({ _id: newPost._id })
       .populate({
-        path: 'userID',
-        select: '-password',
+        path: "userID",
+        select: "-password",
       })
-      .execPopulate();
-
-    return res.status(201).json({ post: populatedPost });
+      .exec();
+    return res.status(201).json({ post: newPost });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: error });
   }
 });
+
 export const deletePost = catchAsync(async (req, res) => {
   const { id } = req.params;
 
@@ -76,14 +75,12 @@ export const updatePost = catchAsync(async (req, res) => {
   }
 });
 
-
-
 export const likeUnlikePost = async (req, res) => {
-  const { postId, userId } = req.body;  
+  const { postId, userId } = req.body;
   try {
     const post = await Post.findById(postId);
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: "Post not found" });
     }
     const isLiked = post.likes.includes(userId);
 
@@ -92,15 +89,15 @@ export const likeUnlikePost = async (req, res) => {
       await post.save();
       console.log(post);
 
-      return res.status(200).json({ message: 'Post unliked', post });
-    } else {      
+      return res.status(200).json({ message: "Post unliked", post });
+    } else {
       post.likes.push(userId);
       await post.save();
       console.log(post);
-      return res.status(200).json({ message: 'Post liked', post });
+      return res.status(200).json({ message: "Post liked", post });
     }
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
