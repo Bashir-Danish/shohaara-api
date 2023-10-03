@@ -1,7 +1,18 @@
 import Post from "../models/post.js";
 import { catchAsync } from "../middlewares.js";
 
+export const getAllPosts = catchAsync(async (req, res) => {
+  const posts = await Post.find()
+    .sort({ createdAt: -1 })
+    .populate({
+      path: "userID",
+      select: "-password",
+    })
+    .exec();
 
+  console.log(posts);
+  res.status(200).json({ message: "", posts: posts });
+});
 export const createPost = catchAsync(async (req, res) => {
   const { text, imagePath, userId } = req.body;
 
@@ -12,7 +23,7 @@ export const createPost = catchAsync(async (req, res) => {
       userID: userId,
     });
 
-    // After creating the new post, retrieve it with populated user data
+    
     const populatedPost = await newPost
       .populate({
         path: 'userID',
