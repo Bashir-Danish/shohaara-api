@@ -8,7 +8,8 @@ import {
 
 const router = express.Router();
 
-router.route('/').post(createComment).get(getAllComments);
+router.route('/:postId/:userId').get(getAllComments)
+router.route('/').post(createComment)
 router.route('/:id').put(updateComment).delete(deleteComment);
 
 export default router;
